@@ -1,0 +1,67 @@
+.panel_color1 {
+  background-color: #003d53;
+}
+.panel_color2 {
+  background-color: #047d6f;
+}
+.panel_color3 {
+  background-color: #264653;
+}
+.panel_color4 {
+  background-color: #004a42;
+}
+
+.panel_color1,
+.panel_color2,
+.panel_color3,
+.panel_color4 {
+  color: white;
+}
+
+.panel_color1 th,
+.panel_color2 th,
+.panel_color3 th,
+.panel_color4 th {
+  color: white;
+}
+
+.odd,
+.odd + .child {
+  background-color: #f7f7f7 !important;
+}
+
+.even,
+.even + .child {
+  background-color: #eeeeee !important;
+}
+
+.tile_count .tile_stats_count:before {
+  margin-top: 0;
+}
+
+.tile_count .tile_stats_count {
+  padding: 10px 10px 0 20px;
+}
+
+th {
+  text-align: center;
+  vertical-align: middle !important;
+}
+
+.left_col .site_title i {
+  border: none !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+  padding: 0 !important;
+}
+
+.nav-sm .site_title i img {
+  height: 45px;
+  width: auto;
+  margin: 8px auto 0;
+  display: block;
+}
+
+.nav-sm .navbar.nav_title {
+  text-align: center;
+}
