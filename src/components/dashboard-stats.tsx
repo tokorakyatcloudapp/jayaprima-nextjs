@@ -63,12 +63,24 @@ export default function DashboardStats() {
   return (
     <div className="row tile_count">
       {stats.map((stat) => (
-        <div key={stat.label} className="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
-          <span className="count_top">
-            <i className={`fa ${stat.icon}`} /> {stat.label}
-          </span>
-          <div className={`count ${stat.colorClass}`}>{stat.value.toLocaleString("id-ID")}</div>
-          <span className="count_bottom" />
+        <div key={stat.label} className="col-md-2 col-sm-4 col-xs-6">
+          <div
+            className="tile_stats_count"
+            style={{
+              background: "#fff",
+              border: "1px solid #d9dee4",
+              borderRadius: 4,
+              marginBottom: 12,
+              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+              paddingTop: 10,
+            }}
+          >
+            <span className="count_top">
+              <i className={`fa ${stat.icon}`} /> {stat.label}
+            </span>
+            <div className={`count ${stat.colorClass}`}>{stat.value.toLocaleString("id-ID")}</div>
+            <span className="count_bottom" />
+          </div>
         </div>
       ))}
     </div>

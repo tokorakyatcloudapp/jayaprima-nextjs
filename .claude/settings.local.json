@@ -22,7 +22,8 @@
       "Bash(curl -s http://localhost:3000/api/logo -o /tmp/test_logo.png)",
       "Read(//tmp/**)",
       "Bash(curl -s http://jayaprima.host/)",
-      "Bash(curl -s http://localhost:3000/dashboard)"
+      "Bash(curl -s http://localhost:3000/dashboard)",
+      "Bash(npm show:*)"
     ]
   }
 }

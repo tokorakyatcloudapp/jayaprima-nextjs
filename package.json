@@ -5,13 +5,20 @@
   "scripts": {
     "dev": "npm run format && next dev",
     "build": "next build",
+    "clean": "rm -rf .next",
+    "rebuild": "npm run clean && npm run build",
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --check --write .",
     "prepare": "husky"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "better-sqlite3": "^12.8.0",
+    "chart.js": "^4.5.1",
+    "datatables.net-bs": "^2.3.7",
+    "datatables.net-react": "^1.0.1",
     "jose": "^6.2.2",
     "next": "16.2.0",
     "react": "19.2.4",

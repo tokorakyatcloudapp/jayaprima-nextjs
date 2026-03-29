@@ -99,15 +99,31 @@ export default function Sidebar({
                   const isChildActive = item.children.some((c) => pathname === c.href);
                   const isOpen = openSubmenu === item.label || isChildActive;
                   return (
-                    <li key={item.label} className={isChildActive ? "active" : ""}>
+                    <li key={item.label} className={isOpen ? "active" : ""}>
                       <a
                         onClick={() => setOpenSubmenu(isOpen ? null : item.label)}
                         style={{ cursor: "pointer" }}
                       >
                         <i className={`fa ${item.icon}`} /> {item.label}{" "}
-                        <span className="fa fa-chevron-down" />
+                        <span
+                          className="fa fa-chevron-down"
+                          style={{
+                            transition: "transform 0.3s ease",
+                            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                          }}
+                        />
                       </a>
-                      <ul className="nav child_menu" style={{ display: isOpen ? "block" : "none" }}>
+                      <ul
+                        className="nav child_menu"
+                        style={{
+                          display: "block",
+                          overflow: "hidden",
+                          maxHeight: isOpen ? "500px" : "0",
+                          transition: isOpen
+                            ? "max-height 0.4s ease-in"
+                            : "max-height 0.3s ease-out",
+                        }}
+                      >
                         {item.children.map((child) => (
                           <li key={child.href} className={pathname === child.href ? "active" : ""}>
                             <Link href={child.href}>{child.label}</Link>

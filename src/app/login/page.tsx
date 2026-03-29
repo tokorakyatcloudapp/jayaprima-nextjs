@@ -105,6 +105,11 @@ export default function LoginPage() {
         </div>
       </div>
 
+      <style jsx global>{`
+        body {
+          background: #f7f7f7;
+        }
+      `}</style>
       <style jsx>{`
         /* ---- Base ---- */
         .login {

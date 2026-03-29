@@ -35,12 +35,17 @@
   background-color: #eeeeee !important;
 }
 
+.nav-md .container.body .right_col {
+  padding: 20px 30px;
+}
+
 .tile_count .tile_stats_count:before {
-  margin-top: 0;
+  display: none;
 }
 
 .tile_count .tile_stats_count {
-  padding: 10px 10px 0 20px;
+  padding: 14px 16px 14px 20px;
+  border-left: 3px solid #d9dee4;
 }
 
 th {
@@ -64,4 +69,30 @@ th {
 
 .nav-sm .navbar.nav_title {
   text-align: center;
+}
+
+#tabel_pendapatan_bln,
+#tabel_pendapatan_hrn {
+  font-size: 13px;
+}
+
+#tabel_pendapatan_bln th,
+#tabel_pendapatan_bln td,
+#tabel_pendapatan_hrn th,
+#tabel_pendapatan_hrn td {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+#table_sum_p_bln th,
+#table_sum_p_bln td {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+#table_sum_p_bln td {
+  padding-left: 20px;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: end;
 }

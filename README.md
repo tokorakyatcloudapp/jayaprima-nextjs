@@ -13,6 +13,7 @@ Sistem manajemen Jaya Prima — built with Next.js and TypeScript. Migrated from
 - Dynamic company logo and profile images served from database BLOBs
 - Database year selector for multi-year data access
 - Prettier + Husky pre-commit hooks for code quality
+- Vercel Analytics and Speed Insights for performance monitoring
 
 ## Getting Started
 
@@ -43,7 +44,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Project Structure
 
-```
+```text
 src/
 ├── app/
 │   ├── api/
@@ -86,3 +87,4 @@ src/
 - **better-sqlite3** — SQLite database access
 - **jose** — JWT signing and verification
 - **Prettier** + **Husky** — code formatting and pre-commit hooks
+- **Vercel Analytics & Speed Insights** — performance monitoring

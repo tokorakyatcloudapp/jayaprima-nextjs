@@ -1,3 +1,5 @@
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import "./globals.css";
 
@@ -26,7 +28,11 @@ export default function RootLayout({
         <link href="/asset/css/custom.min.css" rel="stylesheet" />
       </head>
       {/* eslint-enable @next/next/no-css-tags */}
-      <body>{children}</body>
+      <body>
+        {children}
+        <Analytics />
+        <SpeedInsights />
+      </body>
     </html>
   );
 }
