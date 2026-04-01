@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import { execSync } from "child_process";
 import { getDb } from "@/lib/db";
+import { NextResponse } from "next/server";
+import { execSync } from "node:child_process";
 
 function formatSize(bytes: number): string {
   if (bytes >= 1_073_741_824) return (bytes / 1_073_741_824).toFixed(2) + " GB";
@@ -13,8 +13,8 @@ function getDiskSpace(targetPath: string): { total: number; used: number; free: 
     const output = execSync(`df -k "${targetPath}"`).toString();
     const lines = output.trim().split("\n");
     const parts = lines[1].trim().split(/\s+/);
-    const total = parseInt(parts[1]) * 1024;
-    const available = parseInt(parts[3]) * 1024;
+    const total = Number.parseInt(parts[1]) * 1024;
+    const available = Number.parseInt(parts[3]) * 1024;
     const used = total - available;
     return { total, used, free: available };
   } catch {

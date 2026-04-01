@@ -13,8 +13,13 @@ import {
   PointElement,
   Tooltip,
 } from "chart.js";
+import { id } from "date-fns/locale/id";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
+registerLocale("id", id);
 
 const DataTable = dynamic(
   () => import("@/components/dt-table").then((m) => ({ default: m.DataTable })),
@@ -111,11 +116,13 @@ function pendapatanColumns(labelFn: (v: string) => string, dateField: string): a
     {
       title: "Tanggal",
       data: dateField,
+      className: "text-left",
       render: (data: string, type: string) => (type === "display" ? labelFn(data) : data),
     },
     {
       title: "Kotor<br/>(Tanpa PPN)",
       data: "kas_kotor",
+      className: "text-left",
       render: (data: number, type: string, row: PendapatanHarianRow) =>
         type === "display"
           ? coloredCell(row.phutang_kotor, data)
@@ -124,6 +131,7 @@ function pendapatanColumns(labelFn: (v: string) => string, dateField: string): a
     {
       title: "Modal",
       data: "kas_modal",
+      className: "text-left",
       render: (data: number, type: string, row: PendapatanHarianRow) =>
         type === "display"
           ? coloredCell(row.phutang_modal, data)
@@ -132,6 +140,7 @@ function pendapatanColumns(labelFn: (v: string) => string, dateField: string): a
     {
       title: "Bersih",
       data: "kas_bersih",
+      className: "text-left",
       render: (data: number, type: string, row: PendapatanHarianRow) =>
         type === "display"
           ? coloredCell(row.phutang_bersih, data)
@@ -300,82 +309,82 @@ function GrafikPendapatanBulanan({ data }: Readonly<{ data: PendapatanBulananRow
 
   return (
     <div className="row" style={{ marginTop: "60px" }}>
-      <div className="col-md-12 col-sm-12 col-xs-12">
-        <div className="dashboard_graph">
-          <div className="row x_title">
-            <div className="col-md-6">
-              <h3>Grafik Pendapatan Bulanan</h3>
-            </div>
-          </div>
+      <CollapsiblePanel title="Grafik Pendapatan Bulanan">
+        {/* Left: chart + controls */}
+        <div className="col-md-5 col-sm-5 col-xs-12">
+          <canvas ref={canvasRef} />
+          <br />
+          <br />
 
-          {/* Left: chart + controls */}
-          <div className="col-md-5 col-sm-5 col-xs-12">
-            <canvas ref={canvasRef} />
-            <br />
-            <br />
+          <label htmlFor="sumTarget">Jumlahkan semua: </label>
+          <select
+            id="sumTarget"
+            style={{ fontWeight: "bold" }}
+            value={sumTarget}
+            onChange={(e) => setSumTarget(e.target.value as SumTarget)}
+          >
+            <option className="red" value="phutang">
+              Hutang Pelanggan
+            </option>
+            <option className="green" value="kas">
+              Kas
+            </option>
+            <option className="blue" value="total">
+              Total
+            </option>
+          </select>
 
-            <label htmlFor="sumTarget">Jumlahkan semua: </label>
-            <select
-              id="sumTarget"
-              style={{ fontWeight: "bold" }}
-              value={sumTarget}
-              onChange={(e) => setSumTarget(e.target.value as SumTarget)}
-            >
-              <option className="red" value="phutang">
-                Hutang Pelanggan
-              </option>
-              <option className="green" value="kas">
-                Kas
-              </option>
-              <option className="blue" value="total">
-                Total
-              </option>
-            </select>
+          <table id="table_sum_p_bln">
+            <tbody>
+              <tr>
+                <th>Kotor</th>
+                <td>{formatRp(totals.kotor)}</td>
+              </tr>
+              <tr style={{ color: "#d58512" }}>
+                <th>Modal</th>
+                <td>{formatRp(totals.modal)}</td>
+              </tr>
+              <tr style={{ color: "#26B99A" }}>
+                <th>Bersih</th>
+                <td>{formatRp(totals.bersih)}</td>
+              </tr>
+            </tbody>
+          </table>
 
-            <table id="table_sum_p_bln">
-              <tbody>
-                <tr>
-                  <th>Kotor</th>
-                  <td>{formatRp(totals.kotor)}</td>
-                </tr>
-                <tr style={{ color: "#d58512" }}>
-                  <th>Modal</th>
-                  <td>{formatRp(totals.modal)}</td>
-                </tr>
-                <tr style={{ color: "#26B99A" }}>
-                  <th>Bersih</th>
-                  <td>{formatRp(totals.bersih)}</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <div style={{ marginTop: 15, marginBottom: 40 }}>{sumMsg[sumTarget]}</div>
-          </div>
-
-          {/* Right: data table */}
-          <div className="col-md-7 col-sm-7 col-xs-12 bg-white">
-            <DataTable
-              id="tabel_pendapatan_bln"
-              data={data}
-              columns={pendapatanColumns(ymToLabel, "Ym")}
-              className="table table-striped table-bordered nowrap"
-              options={{ paging: false, searching: false, info: false, order: [] }}
-            />
-          </div>
-
-          <div className="clearfix" />
+          <div style={{ marginTop: 15, marginBottom: 40 }}>{sumMsg[sumTarget]}</div>
         </div>
-      </div>
+
+        {/* Right: data table */}
+        <div className="col-md-7 col-sm-7 col-xs-12 bg-white">
+          <DataTable
+            id="tabel_pendapatan_bln"
+            data={data}
+            columns={pendapatanColumns(ymToLabel, "Ym")}
+            className="table table-striped table-bordered nowrap"
+            options={{ searching: false, info: false, order: [] }}
+          />
+        </div>
+
+        <div className="clearfix" />
+      </CollapsiblePanel>
     </div>
   );
 }
 
 // ── Section: Pendapatan Harian ────────────────────────────────────────────────
 
+function formatDateStr(d: Date | null): string {
+  if (!d) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 function PendapatanHarian() {
   const [data, setData] = useState<PendapatanHarianRow[]>([]);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
 
   const fetchData = (start: string, end: string) => {
     const params = new URLSearchParams();
@@ -394,12 +403,14 @@ function PendapatanHarian() {
   }, []);
 
   const handleFilter = () => {
-    if (startDate && endDate) fetchData(startDate, endDate);
+    const s = formatDateStr(startDate);
+    const e = formatDateStr(endDate);
+    if (s && e) fetchData(s, e);
   };
 
   const handleReset = () => {
-    setStartDate("");
-    setEndDate("");
+    setStartDate(null);
+    setEndDate(null);
     fetchData("", "");
   };
 
@@ -416,18 +427,23 @@ function PendapatanHarian() {
         }}
       >
         <label>Dari:</label>
-        <input
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          style={{ padding: "2px 6px", borderRadius: 3, border: "1px solid #ccc" }}
+        <DatePicker
+          selected={startDate}
+          onChange={(date: Date | null) => setStartDate(date)}
+          dateFormat="dd/MM/yyyy"
+          locale="id"
+          placeholderText="Pilih tanggal"
+          className="form-control"
         />
         <label>Sampai:</label>
-        <input
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          style={{ padding: "2px 6px", borderRadius: 3, border: "1px solid #ccc" }}
+        <DatePicker
+          selected={endDate}
+          onChange={(date: Date | null) => setEndDate(date)}
+          dateFormat="dd/MM/yyyy"
+          locale="id"
+          placeholderText="Pilih tanggal"
+          minDate={startDate ?? undefined}
+          className="form-control"
         />
         <button
           className="btn btn-default btn-sm"
@@ -446,7 +462,7 @@ function PendapatanHarian() {
         data={data}
         columns={pendapatanColumns(tanggalToLabel, "tanggal")}
         className="table table-striped table-bordered nowrap"
-        options={{ order: [], pageLength: 25 }}
+        options={{ order: [] }}
       />
     </CollapsiblePanel>
   );
@@ -505,45 +521,53 @@ function InfoPenyimpanan() {
   }, []);
 
   return (
-    <CollapsiblePanel title="Info Penyimpanan" defaultOpen={false}>
-      <div className="row">
-        <div className="col-md-6 col-sm-6 col-xs-12" style={{ textAlign: "center" }}>
-          <canvas ref={canvasRef} />
+    <CollapsiblePanel title="Info Penyimpanan">
+      <div className="row storage-info-layout">
+        <div className="col-md-5 col-sm-12 col-xs-12 storage-info-chart-col">
+          <div className="storage-info-chart-card">
+            <canvas ref={canvasRef} />
+          </div>
         </div>
-        <div className="col-md-6 col-sm-6 col-xs-12">
+        <div className="col-md-7 col-sm-12 col-xs-12 storage-info-table-col">
           {info ? (
-            <table className="table" style={{ fontSize: 16 }}>
-              <tbody>
-                <tr>
-                  <th style={{ textAlign: "start" }}>Total</th>
-                  <td style={{ fontWeight: "bold" }}>{info.labelTotal}</td>
-                </tr>
-                <tr>
-                  <th style={{ textAlign: "start", color: "#337AB7" }}>Digunakan</th>
-                  <td style={{ fontWeight: "bold", color: "#337AB7" }}>{info.labelUsed}</td>
-                </tr>
-                <tr>
-                  <th
-                    style={{ textAlign: "start", color: info.isLowSpace ? "#E74C3C" : "#26B99A" }}
-                  >
-                    Sisa
-                  </th>
-                  <td
-                    style={{ fontWeight: "bold", color: info.isLowSpace ? "#E74C3C" : "#26B99A" }}
-                  >
-                    {info.labelFree}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <div className="storage-info-summary-card">
+              <table className="table storage-info-table">
+                <tbody>
+                  <tr>
+                    <th>Total</th>
+                    <td>{info.labelTotal}</td>
+                  </tr>
+                  <tr>
+                    <th className="storage-info-used">Digunakan</th>
+                    <td className="storage-info-used">{info.labelUsed}</td>
+                  </tr>
+                  <tr>
+                    <th
+                      className={
+                        info.isLowSpace ? "storage-info-free low-space" : "storage-info-free"
+                      }
+                    >
+                      Sisa
+                    </th>
+                    <td
+                      className={
+                        info.isLowSpace ? "storage-info-free low-space" : "storage-info-free"
+                      }
+                    >
+                      {info.labelFree}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              {info.isLowSpace && (
+                <div className="alert alert-danger storage-info-alert">
+                  <i className="fa fa-warning" /> Peringatan: Ruang penyimpanan hampir penuh (&lt;
+                  100 MB)!
+                </div>
+              )}
+            </div>
           ) : (
             <p style={{ color: "#999" }}>Memuat data...</p>
-          )}
-          {info?.isLowSpace && (
-            <div className="alert alert-danger">
-              <i className="fa fa-warning" /> Peringatan: Ruang penyimpanan hampir penuh (&lt; 100
-              MB)!
-            </div>
           )}
         </div>
       </div>
@@ -582,7 +606,7 @@ export default function DashboardPanels() {
       {/* Kategori Teratas & Pelanggan Teratas */}
       <div className="row">
         <div className="col-md-6 col-sm-6 col-xs-12">
-          <CollapsiblePanel title="Kategori Teratas" colorClass="panel_color2" defaultOpen={false}>
+          <CollapsiblePanel title="Kategori Teratas" colorClass="panel_color2">
             <DataTable
               id="tabel_kategori_top"
               data={topKategori}
@@ -602,7 +626,7 @@ export default function DashboardPanels() {
           </CollapsiblePanel>
         </div>
         <div className="col-md-6 col-sm-6 col-xs-12">
-          <CollapsiblePanel title="Pelanggan Teratas" colorClass="panel_color1" defaultOpen={false}>
+          <CollapsiblePanel title="Pelanggan Teratas" colorClass="panel_color1">
             <DataTable
               id="tabel_pelanggan_top"
               data={topPelanggan}

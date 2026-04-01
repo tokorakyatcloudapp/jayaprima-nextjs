@@ -11,18 +11,18 @@
   background-color: #004a42;
 }
 
-.panel_color1,
-.panel_color2,
-.panel_color3,
-.panel_color4 {
-  color: white;
+.panel_color1 .x_title,
+.panel_color2 .x_title,
+.panel_color3 .x_title,
+.panel_color4 .x_title {
+  color: #333;
 }
 
-.panel_color1 th,
-.panel_color2 th,
-.panel_color3 th,
-.panel_color4 th {
-  color: white;
+.panel_color1 .x_content,
+.panel_color2 .x_content,
+.panel_color3 .x_content,
+.panel_color4 .x_content {
+  color: #333;
 }
 
 .odd,
@@ -78,10 +78,15 @@ th {
 
 #tabel_pendapatan_bln th,
 #tabel_pendapatan_bln td,
+#tabel_pendapatan_bln_wrapper th,
+#tabel_pendapatan_bln_wrapper td,
 #tabel_pendapatan_hrn th,
-#tabel_pendapatan_hrn td {
+#tabel_pendapatan_hrn td,
+#tabel_pendapatan_hrn_wrapper th,
+#tabel_pendapatan_hrn_wrapper td {
   padding-top: 5px;
   padding-bottom: 5px;
+  text-align: left !important;
 }
 
 #table_sum_p_bln th,
@@ -95,4 +100,122 @@ th {
   font-size: 20px;
   font-weight: bold;
   text-align: end;
+}
+
+.react-datepicker {
+  font-size: 1.2rem !important;
+}
+
+.react-datepicker__header {
+  padding-top: 12px !important;
+}
+
+.react-datepicker__day,
+.react-datepicker__day-name {
+  width: 2.5rem !important;
+  line-height: 2.5rem !important;
+  margin: 0.3rem !important;
+}
+
+.react-datepicker__current-month {
+  font-size: 1.3rem !important;
+}
+
+.react-datepicker__navigation {
+  top: 12px !important;
+}
+
+.storage-info-layout {
+  display: flex;
+  align-items: stretch;
+}
+
+.storage-info-chart-col,
+.storage-info-table-col {
+  margin-bottom: 15px;
+}
+
+.storage-info-chart-card,
+.storage-info-summary-card {
+  height: 100%;
+  min-height: 100%;
+  border: 1px solid #e6e9ed;
+  border-radius: 8px;
+  background: #fff;
+  padding: 24px;
+}
+
+.storage-info-chart-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.storage-info-chart-card canvas {
+  width: 100% !important;
+  max-width: 260px;
+  height: auto !important;
+}
+
+.storage-info-summary-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.storage-info-table {
+  margin-bottom: 0;
+  font-size: 16px;
+}
+
+.storage-info-table th,
+.storage-info-table td {
+  padding: 14px 8px !important;
+  border-top: 1px solid #eef1f4 !important;
+}
+
+.storage-info-table tbody tr:first-child th,
+.storage-info-table tbody tr:first-child td {
+  border-top: none !important;
+}
+
+.storage-info-table th {
+  width: 38%;
+  text-align: left;
+}
+
+.storage-info-table td {
+  font-weight: bold;
+}
+
+.storage-info-used {
+  color: #337ab7;
+}
+
+.storage-info-free {
+  color: #26b99a;
+}
+
+.storage-info-free.low-space {
+  color: #e74c3c;
+}
+
+.storage-info-alert {
+  margin-top: 20px;
+  margin-bottom: 0;
+}
+
+@media (max-width: 991px) {
+  .storage-info-layout {
+    display: block;
+  }
+
+  .storage-info-chart-card,
+  .storage-info-summary-card {
+    min-height: auto;
+  }
+
+  .storage-info-chart-card canvas {
+    max-width: 220px;
+  }
 }

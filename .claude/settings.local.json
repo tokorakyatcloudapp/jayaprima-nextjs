@@ -23,7 +23,8 @@
       "Read(//tmp/**)",
       "Bash(curl -s http://jayaprima.host/)",
       "Bash(curl -s http://localhost:3000/dashboard)",
-      "Bash(npm show:*)"
+      "Bash(npm show:*)",
+      "Bash(ls /Users/rooter/Documents/gitdev/private/jayaprima-nextjs/*.md)"
     ]
   }
 }

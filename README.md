@@ -13,6 +13,10 @@ Sistem manajemen Jaya Prima — built with Next.js and TypeScript. Migrated from
 - Dynamic company logo and profile images served from database BLOBs
 - Database year selector for multi-year data access
 - Prettier + Husky pre-commit hooks for code quality
+- DataTables integration for interactive data tables
+- Chart.js for dashboard data visualization
+- Date picker for date-based filtering
+- Storage info API for SQLite database metrics
 - Vercel Analytics and Speed Insights for performance monitoring
 
 ## Getting Started
@@ -55,6 +59,7 @@ src/
 │   │   ├── logout/route.ts            # Clear session cookie
 │   │   ├── pendapatan-bulanan/route.ts
 │   │   ├── pendapatan-harian/route.ts
+│   │   ├── storage-info/route.ts      # SQLite database storage metrics
 │   │   ├── top-kategori/route.ts
 │   │   ├── top-pelanggan/route.ts
 │   │   └── user-info/route.ts         # Company info + available DB years
@@ -69,6 +74,7 @@ src/
 │   ├── globals.css
 │   └── layout.tsx                     # Root layout (Bootstrap 3 + Font Awesome 4)
 ├── components/
+│   ├── dt-table.tsx                   # Reusable DataTables wrapper component
 │   ├── sidebar.tsx                    # Left navigation with menu items
 │   ├── top-nav.tsx                    # Top bar with profile + DB year selector
 │   └── dashboard-stats.tsx            # Stats tiles
@@ -86,5 +92,8 @@ src/
 - **Bootstrap 3.3.7** + **Font Awesome 4.7** — matching original PHP project
 - **better-sqlite3** — SQLite database access
 - **jose** — JWT signing and verification
+- **Chart.js** — dashboard data visualization
+- **DataTables** (datatables.net-react + datatables.net-bs) — interactive data tables
+- **react-datepicker** — date-based filtering
 - **Prettier** + **Husky** — code formatting and pre-commit hooks
 - **Vercel Analytics & Speed Insights** — performance monitoring
