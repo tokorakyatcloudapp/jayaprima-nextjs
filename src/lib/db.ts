@@ -1,20 +1,52 @@
-import Database from "better-sqlite3";
-import path from "path";
+import { MongoClient, Db, GridFSBucket } from "mongodb";
 
-const DB_DIR = path.join(process.cwd(), "src", "db");
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017";
+const MONGOFS_URI = process.env.MONGOFS_URI || MONGODB_URI;
+const MONGODB_DB = process.env.MONGODB_DB || "jayaprima_2026";
 
-let db: Database.Database | null = null;
+let client: MongoClient | null = null;
+let db: Db | null = null;
 
-export function getDb(year: string = "2026"): Database.Database {
-  const dbPath = path.join(DB_DIR, year);
+let fsClient: MongoClient | null = null;
+let fsDb: Db | null = null;
+let fsBucket: GridFSBucket | null = null;
 
-  if (db && db.name === dbPath && db.open) {
+export async function getDb(year?: string): Promise<Db> {
+  const dbName = year ? `jayaprima_${year}` : MONGODB_DB;
+
+  if (client && db && db.databaseName === dbName) {
     return db;
   }
 
-  db = new Database(dbPath, { readonly: false });
-  db.pragma("journal_mode = WAL");
-  db.pragma("foreign_keys = ON");
+  if (!client) {
+    client = new MongoClient(MONGODB_URI);
+    await client.connect();
+  }
 
+  db = client.db(dbName);
   return db;
+}
+
+export async function getFsBucket(): Promise<GridFSBucket> {
+  if (fsClient && fsBucket) {
+    return fsBucket;
+  }
+
+  if (!fsClient) {
+    fsClient = new MongoClient(MONGOFS_URI);
+    await fsClient.connect();
+  }
+
+  fsDb = fsClient.db(MONGODB_DB);
+  fsBucket = new GridFSBucket(fsDb);
+  return fsBucket;
+}
+
+export async function getFsDb(): Promise<Db> {
+  if (fsClient && fsDb) {
+    return fsDb;
+  }
+
+  await getFsBucket();
+  return fsDb!;
 }

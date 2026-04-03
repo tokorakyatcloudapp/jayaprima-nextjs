@@ -73,13 +73,21 @@ interface TopPelangganRow {
   total_belanja: number;
 }
 
-interface StorageInfo {
+interface DbStorageInfo {
+  label: string;
   labelTotal: string;
   labelUsed: string;
   labelFree: string;
+  dataSize: string;
+  storageSize: string;
+  indexSize: string;
   percentUsed: number;
   percentFree: number;
   isLowSpace: boolean;
+}
+
+interface StorageInfoResponse {
+  databases: DbStorageInfo[];
 }
 
 type SumTarget = "phutang" | "kas" | "total";
@@ -149,6 +157,37 @@ function pendapatanColumns(labelFn: (v: string) => string, dateField: string): a
   ];
 }
 
+// ── Shimmer loaders ──────────────────────────────────────────────────────────
+
+function ShimmerLines({ count = 5 }: { count?: number }) {
+  const widths = ["long", "full", "medium", "long", "short", "full", "medium"];
+  return (
+    <>
+      {Array.from({ length: count }, (_, i) => (
+        <div key={i} className={`shimmer shimmer-line ${widths[i % widths.length]}`} />
+      ))}
+    </>
+  );
+}
+
+function ShimmerTable({ rows = 5, cols = 3 }: { rows?: number; cols?: number }) {
+  return (
+    <>
+      {Array.from({ length: rows }, (_, i) => (
+        <div key={i} className="shimmer-table-row">
+          {Array.from({ length: cols }, (_, j) => (
+            <div key={j} className="shimmer" />
+          ))}
+        </div>
+      ))}
+    </>
+  );
+}
+
+function ShimmerChart() {
+  return <div className="shimmer shimmer-chart" />;
+}
+
 // ── Shared components ─────────────────────────────────────────────────────────
 
 function CollapsiblePanel({
@@ -205,7 +244,10 @@ function pickValue(
   return row[kasField] + row[phutangField];
 }
 
-function GrafikPendapatanBulanan({ data }: Readonly<{ data: PendapatanBulananRow[] }>) {
+function GrafikPendapatanBulanan({
+  data,
+  loading,
+}: Readonly<{ data: PendapatanBulananRow[]; loading: boolean }>) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
   const [sumTarget, setSumTarget] = useState<SumTarget>("kas");
@@ -244,6 +286,7 @@ function GrafikPendapatanBulanan({ data }: Readonly<{ data: PendapatanBulananRow
               pointBorderWidth: 1,
               data: bersih,
               fill: true,
+              tension: 0.4,
             },
             {
               label: "Kotor",
@@ -256,6 +299,7 @@ function GrafikPendapatanBulanan({ data }: Readonly<{ data: PendapatanBulananRow
               pointBorderWidth: 1,
               data: kotor,
               fill: true,
+              tension: 0.4,
             },
           ],
         },
@@ -306,6 +350,22 @@ function GrafikPendapatanBulanan({ data }: Readonly<{ data: PendapatanBulananRow
       </>
     ),
   };
+
+  if (loading) {
+    return (
+      <div className="row" style={{ marginTop: "60px" }}>
+        <CollapsiblePanel title="Grafik Pendapatan Bulanan">
+          <div className="col-md-5 col-sm-5 col-xs-12">
+            <ShimmerLines count={6} />
+          </div>
+          <div className="col-md-7 col-sm-7 col-xs-12">
+            <ShimmerTable rows={6} cols={4} />
+          </div>
+          <div className="clearfix" />
+        </CollapsiblePanel>
+      </div>
+    );
+  }
 
   return (
     <div className="row" style={{ marginTop: "60px" }}>
@@ -383,10 +443,12 @@ function formatDateStr(d: Date | null): string {
 
 function PendapatanHarian() {
   const [data, setData] = useState<PendapatanHarianRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
 
   const fetchData = (start: string, end: string) => {
+    setLoading(true);
     const params = new URLSearchParams();
     if (start && end) {
       params.set("startDate", start);
@@ -395,11 +457,17 @@ function PendapatanHarian() {
     fetch(`/api/pendapatan-harian?${params}`)
       .then((r) => r.json())
       .then(setData)
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    fetchData("", "");
+    const params = new URLSearchParams();
+    fetch(`/api/pendapatan-harian?${params}`)
+      .then((r) => r.json())
+      .then(setData)
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const handleFilter = () => {
@@ -457,71 +525,66 @@ function PendapatanHarian() {
         </button>
       </div>
 
-      <DataTable
-        id="tabel_pendapatan_hrn"
-        data={data}
-        columns={pendapatanColumns(tanggalToLabel, "tanggal")}
-        className="table table-striped table-bordered nowrap"
-        options={{ order: [] }}
-      />
+      {loading ? (
+        <ShimmerTable rows={6} cols={4} />
+      ) : (
+        <DataTable
+          id="tabel_pendapatan_hrn"
+          data={data}
+          columns={pendapatanColumns(tanggalToLabel, "tanggal")}
+          className="table table-striped table-bordered nowrap"
+          options={{ order: [] }}
+        />
+      )}
     </CollapsiblePanel>
   );
 }
 
 // ── Section: Info Penyimpanan ─────────────────────────────────────────────────
 
-function InfoPenyimpanan() {
+function DbStorageCard({ db }: { db: DbStorageInfo }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
-  const [info, setInfo] = useState<StorageInfo | null>(null);
 
   useEffect(() => {
-    fetch("/api/storage-info")
-      .then((r) => r.json())
-      .then((data: StorageInfo) => {
-        setInfo(data);
+    if (!canvasRef.current) return;
 
-        if (!canvasRef.current) return;
+    const freeColor = db.isLowSpace ? "#E74C3C" : "#26B99A";
 
-        const freeColor = data.isLowSpace ? "#E74C3C" : "#26B99A";
-
-        if (!chartRef.current) {
-          chartRef.current = new Chart(canvasRef.current, {
-            type: "doughnut",
-            data: {
-              labels: ["Digunakan (%)", "Sisa (%)"],
-              datasets: [
-                {
-                  data: [data.percentUsed, data.percentFree],
-                  backgroundColor: ["#337AB7", freeColor],
-                  hoverBackgroundColor: ["#337AB7", freeColor],
-                },
-              ],
+    if (!chartRef.current) {
+      chartRef.current = new Chart(canvasRef.current, {
+        type: "doughnut",
+        data: {
+          labels: ["Digunakan (%)", "Sisa (%)"],
+          datasets: [
+            {
+              data: [db.percentUsed, db.percentFree],
+              backgroundColor: ["#337AB7", freeColor],
+              hoverBackgroundColor: ["#337AB7", freeColor],
             },
-            options: {
-              plugins: { legend: { position: "top" } },
-              responsive: true,
-            },
-          });
-        } else {
-          chartRef.current.data.datasets[0].data = [data.percentUsed, data.percentFree];
-          (chartRef.current.data.datasets[0].backgroundColor as string[])[1] = freeColor;
-          (chartRef.current.data.datasets[0].hoverBackgroundColor as string[])[1] = freeColor;
-          chartRef.current.update();
-        }
-      })
-      .catch(() => {});
-  }, []);
+          ],
+        },
+        options: {
+          plugins: { legend: { position: "top" } },
+          responsive: true,
+        },
+      });
+    } else {
+      chartRef.current.data.datasets[0].data = [db.percentUsed, db.percentFree];
+      (chartRef.current.data.datasets[0].backgroundColor as string[])[1] = freeColor;
+      (chartRef.current.data.datasets[0].hoverBackgroundColor as string[])[1] = freeColor;
+      chartRef.current.update();
+    }
 
-  useEffect(() => {
     return () => {
       chartRef.current?.destroy();
       chartRef.current = null;
     };
-  }, []);
+  }, [db]);
 
   return (
-    <CollapsiblePanel title="Info Penyimpanan">
+    <div className="col-md-6 col-sm-12 col-xs-12" style={{ marginBottom: 16 }}>
+      <h5 style={{ fontWeight: 600, marginBottom: 8 }}>{db.label}</h5>
       <div className="row storage-info-layout">
         <div className="col-md-5 col-sm-12 col-xs-12 storage-info-chart-col">
           <div className="storage-info-chart-card">
@@ -529,48 +592,92 @@ function InfoPenyimpanan() {
           </div>
         </div>
         <div className="col-md-7 col-sm-12 col-xs-12 storage-info-table-col">
-          {info ? (
-            <div className="storage-info-summary-card">
-              <table className="table storage-info-table">
-                <tbody>
-                  <tr>
-                    <th>Total</th>
-                    <td>{info.labelTotal}</td>
-                  </tr>
-                  <tr>
-                    <th className="storage-info-used">Digunakan</th>
-                    <td className="storage-info-used">{info.labelUsed}</td>
-                  </tr>
-                  <tr>
-                    <th
-                      className={
-                        info.isLowSpace ? "storage-info-free low-space" : "storage-info-free"
-                      }
-                    >
-                      Sisa
-                    </th>
-                    <td
-                      className={
-                        info.isLowSpace ? "storage-info-free low-space" : "storage-info-free"
-                      }
-                    >
-                      {info.labelFree}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              {info.isLowSpace && (
-                <div className="alert alert-danger storage-info-alert">
-                  <i className="fa fa-warning" /> Peringatan: Ruang penyimpanan hampir penuh (&lt;
-                  100 MB)!
-                </div>
-              )}
-            </div>
-          ) : (
-            <p style={{ color: "#999" }}>Memuat data...</p>
-          )}
+          <div className="storage-info-summary-card">
+            <table className="table storage-info-table">
+              <tbody>
+                <tr>
+                  <th>Total</th>
+                  <td>{db.labelTotal}</td>
+                </tr>
+                <tr>
+                  <th className="storage-info-used">Digunakan</th>
+                  <td className="storage-info-used">{db.labelUsed}</td>
+                </tr>
+                <tr>
+                  <th
+                    className={db.isLowSpace ? "storage-info-free low-space" : "storage-info-free"}
+                  >
+                    Sisa
+                  </th>
+                  <td
+                    className={db.isLowSpace ? "storage-info-free low-space" : "storage-info-free"}
+                  >
+                    {db.labelFree}
+                  </td>
+                </tr>
+                <tr>
+                  <th>Data</th>
+                  <td>{db.dataSize}</td>
+                </tr>
+                <tr>
+                  <th>Index</th>
+                  <td>{db.indexSize}</td>
+                </tr>
+              </tbody>
+            </table>
+            {db.isLowSpace && (
+              <div className="alert alert-danger storage-info-alert">
+                <i className="fa fa-warning" /> Peringatan: Ruang penyimpanan hampir penuh (&lt; 100
+                MB)!
+              </div>
+            )}
+          </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function InfoPenyimpanan() {
+  const [databases, setDatabases] = useState<DbStorageInfo[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/storage-info")
+      .then((r) => r.json())
+      .then((data: StorageInfoResponse) => setDatabases(data.databases))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <CollapsiblePanel title="Info Penyimpanan">
+      {loading ? (
+        <div className="row">
+          {[0, 1].map((i) => (
+            <div key={i} className="col-md-6 col-sm-12 col-xs-12" style={{ marginBottom: 16 }}>
+              <div
+                className="shimmer shimmer-line medium"
+                style={{ height: 18, marginBottom: 12 }}
+              />
+              <div className="row">
+                <div className="col-md-5 col-sm-12 col-xs-12">
+                  <ShimmerChart />
+                </div>
+                <div className="col-md-7 col-sm-12 col-xs-12">
+                  <ShimmerTable rows={5} cols={2} />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="row">
+          {databases.map((db) => (
+            <DbStorageCard key={db.label} db={db} />
+          ))}
+        </div>
+      )}
     </CollapsiblePanel>
   );
 }
@@ -581,25 +688,33 @@ export default function DashboardPanels() {
   const [pdptnBulanan, setPdptnBulanan] = useState<PendapatanBulananRow[]>([]);
   const [topKategori, setTopKategori] = useState<TopKategoriRow[]>([]);
   const [topPelanggan, setTopPelanggan] = useState<TopPelangganRow[]>([]);
+  const [loadingBulanan, setLoadingBulanan] = useState(true);
+  const [loadingKategori, setLoadingKategori] = useState(true);
+  const [loadingPelanggan, setLoadingPelanggan] = useState(true);
 
   useEffect(() => {
     fetch("/api/pendapatan-bulanan")
       .then((r) => r.json())
-      .then(setPdptnBulanan)
-      .catch(() => {});
+      .then((rows: PendapatanBulananRow[]) =>
+        setPdptnBulanan(rows.sort((a, b) => a.Ym.localeCompare(b.Ym)))
+      )
+      .catch(() => {})
+      .finally(() => setLoadingBulanan(false));
     fetch("/api/top-kategori")
       .then((r) => r.json())
       .then(setTopKategori)
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoadingKategori(false));
     fetch("/api/top-pelanggan")
       .then((r) => r.json())
       .then(setTopPelanggan)
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoadingPelanggan(false));
   }, []);
 
   return (
     <>
-      <GrafikPendapatanBulanan data={pdptnBulanan} />
+      <GrafikPendapatanBulanan data={pdptnBulanan} loading={loadingBulanan} />
       <br />
       <br />
 
@@ -607,42 +722,52 @@ export default function DashboardPanels() {
       <div className="row">
         <div className="col-md-6 col-sm-6 col-xs-12">
           <CollapsiblePanel title="Kategori Teratas" colorClass="panel_color2">
-            <DataTable
-              id="tabel_kategori_top"
-              data={topKategori}
-              columns={[
-                { title: "Kategori", data: "kategori" },
-                {
-                  title: "Total",
-                  data: "total",
-                  className: "text-right",
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  render: (data: any, type: string) => (type === "display" ? formatRp(data) : data),
-                },
-              ]}
-              className="table table-striped table-bordered"
-              options={{ order: [], searching: false }}
-            />
+            {loadingKategori ? (
+              <ShimmerTable rows={5} cols={2} />
+            ) : (
+              <DataTable
+                id="tabel_kategori_top"
+                data={topKategori}
+                columns={[
+                  { title: "Kategori", data: "kategori" },
+                  {
+                    title: "Total",
+                    data: "total",
+                    className: "text-right",
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    render: (data: any, type: string) =>
+                      type === "display" ? formatRp(data) : data,
+                  },
+                ]}
+                className="table table-striped table-bordered"
+                options={{ order: [], searching: false }}
+              />
+            )}
           </CollapsiblePanel>
         </div>
         <div className="col-md-6 col-sm-6 col-xs-12">
           <CollapsiblePanel title="Pelanggan Teratas" colorClass="panel_color1">
-            <DataTable
-              id="tabel_pelanggan_top"
-              data={topPelanggan}
-              columns={[
-                { title: "Pelanggan", data: "nama_pelanggan" },
-                {
-                  title: "Total Belanja",
-                  data: "total_belanja",
-                  className: "text-right",
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  render: (data: any, type: string) => (type === "display" ? formatRp(data) : data),
-                },
-              ]}
-              className="table table-striped table-bordered"
-              options={{ order: [], searching: false }}
-            />
+            {loadingPelanggan ? (
+              <ShimmerTable rows={5} cols={2} />
+            ) : (
+              <DataTable
+                id="tabel_pelanggan_top"
+                data={topPelanggan}
+                columns={[
+                  { title: "Pelanggan", data: "nama_pelanggan" },
+                  {
+                    title: "Total Belanja",
+                    data: "total_belanja",
+                    className: "text-right",
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    render: (data: any, type: string) =>
+                      type === "display" ? formatRp(data) : data,
+                  },
+                ]}
+                className="table table-striped table-bordered"
+                options={{ order: [], searching: false }}
+              />
+            )}
           </CollapsiblePanel>
         </div>
       </div>

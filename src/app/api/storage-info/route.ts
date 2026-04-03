@@ -1,6 +1,7 @@
-import { getDb } from "@/lib/db";
+import { getDb, getFsDb } from "@/lib/db";
 import { NextResponse } from "next/server";
-import { execSync } from "node:child_process";
+
+const PLAN_LIMIT = 512 * 1_048_576; // 500 MB free plan
 
 function formatSize(bytes: number): string {
   if (bytes >= 1_073_741_824) return (bytes / 1_073_741_824).toFixed(2) + " GB";
@@ -8,37 +9,42 @@ function formatSize(bytes: number): string {
   return (bytes / 1024).toFixed(2) + " KB";
 }
 
-function getDiskSpace(targetPath: string): { total: number; used: number; free: number } {
-  try {
-    const output = execSync(`df -k "${targetPath}"`).toString();
-    const lines = output.trim().split("\n");
-    const parts = lines[1].trim().split(/\s+/);
-    const total = Number.parseInt(parts[1]) * 1024;
-    const available = Number.parseInt(parts[3]) * 1024;
-    const used = total - available;
-    return { total, used, free: available };
-  } catch {
-    return { total: 0, used: 0, free: 0 };
-  }
+function buildDbInfo(stats: Record<string, number | undefined>, label: string) {
+  const dataSize = stats.dataSize ?? 0;
+  const storageSize = stats.storageSize ?? 0;
+  const indexSize = stats.indexSize ?? 0;
+  const usedBytes = dataSize + indexSize;
+  const freeBytes = Math.max(PLAN_LIMIT - usedBytes, 0);
+  const percentUsed = PLAN_LIMIT > 0 ? Math.round((usedBytes / PLAN_LIMIT) * 100 * 100) / 100 : 0;
+  const percentFree = PLAN_LIMIT > 0 ? Math.round((freeBytes / PLAN_LIMIT) * 100 * 100) / 100 : 0;
+
+  return {
+    label,
+    labelTotal: formatSize(PLAN_LIMIT),
+    labelUsed: formatSize(usedBytes),
+    labelFree: formatSize(freeBytes),
+    dataSize: formatSize(dataSize),
+    storageSize: formatSize(storageSize),
+    indexSize: formatSize(indexSize),
+    percentUsed,
+    percentFree,
+    isLowSpace: freeBytes < 100 * 1_048_576,
+  };
 }
 
 export async function GET() {
-  const db = getDb();
-  // Get the database file path to determine which disk to check
-  const dbPath = (db as unknown as { name: string }).name ?? process.cwd();
+  const db = await getDb();
+  const primaryStats = (await db.stats()) as Record<string, number | undefined>;
+  const primary = buildDbInfo(primaryStats, "Database");
 
-  const { total, used, free } = getDiskSpace(dbPath);
+  let files = null;
+  try {
+    const fsDb = await getFsDb();
+    const fsStats = (await fsDb.stats()) as Record<string, number | undefined>;
+    files = buildDbInfo(fsStats, "File");
+  } catch (err) {
+    console.error("storage-info: fsDb stats failed", err);
+  }
 
-  const percentUsed = total > 0 ? Math.round((used / total) * 100 * 100) / 100 : 0;
-  const percentFree = total > 0 ? Math.round((free / total) * 100 * 100) / 100 : 0;
-  const isLowSpace = free < 100 * 1_048_576; // < 100 MB
-
-  return NextResponse.json({
-    labelTotal: formatSize(total),
-    labelUsed: formatSize(used),
-    labelFree: formatSize(free),
-    percentUsed,
-    percentFree,
-    isLowSpace,
-  });
+  return NextResponse.json({ databases: [primary, ...(files ? [files] : [])] });
 }

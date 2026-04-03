@@ -1,18 +1,9 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 
-interface BerandaRow {
-  hutang_pembelian: number;
-  hutang_pelanggan: number;
-  supplier: number;
-  pelanggan: number;
-  produk: number;
-  admin_aktif: number;
-}
-
 export async function GET() {
-  const db = getDb();
-  const row = db.prepare("SELECT * FROM v_beranda").get() as BerandaRow | undefined;
+  const db = await getDb();
+  const row = await db.collection("v_beranda").findOne({});
 
   if (!row) {
     return NextResponse.json(
@@ -28,5 +19,6 @@ export async function GET() {
     );
   }
 
-  return NextResponse.json(row);
+  const { _id: _, ...data } = row;
+  return NextResponse.json(data);
 }

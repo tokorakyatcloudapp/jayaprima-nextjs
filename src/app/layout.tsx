@@ -6,6 +6,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Jaya Prima",
   description: "Sistem Manajemen Jaya Prima",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({

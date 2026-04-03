@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-
-interface FotoRow {
-  foto: Buffer | null;
-}
+import { Binary } from "mongodb";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -13,16 +10,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Missing id" }, { status: 400 });
   }
 
-  const db = getDb();
-  const row = db.prepare("SELECT foto FROM akun WHERE id = ?").get(Number(id)) as
-    | FotoRow
-    | undefined;
+  const db = await getDb();
+  const row = await db.collection("akun").findOne({ id: Number(id) }, { projection: { foto: 1 } });
 
   if (!row?.foto) {
     return NextResponse.redirect(new URL("/asset/default_profil.jpg", request.url));
   }
 
-  const buf = Buffer.from(row.foto);
+  const buf = Buffer.from(row.foto instanceof Binary ? row.foto.buffer : row.foto);
 
   // Detect content type from magic bytes
   let contentType = "image/jpeg";

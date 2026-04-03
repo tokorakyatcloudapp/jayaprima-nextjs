@@ -19,14 +19,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Username dan password harus diisi" }, { status: 400 });
   }
 
-  const db = getDb();
+  const db = await getDb();
   const md5Pass = createHash("md5").update(password).digest("hex");
 
-  const akun = db
-    .prepare(
-      "SELECT id, username, nama, level_akses, isActive FROM akun WHERE username = ? AND password = ?"
-    )
-    .get(username, md5Pass) as AkunRow | undefined;
+  const akun = (await db
+    .collection("akun")
+    .findOne(
+      { username, password: md5Pass },
+      { projection: { id: 1, username: 1, nama: 1, level_akses: 1, isActive: 1 } }
+    )) as AkunRow | null;
 
   if (!akun) {
     return NextResponse.json({ error: "Username atau Password tidak valid" }, { status: 401 });

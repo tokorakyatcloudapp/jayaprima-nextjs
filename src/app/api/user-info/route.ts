@@ -1,29 +1,22 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import fs from "fs";
-import path from "path";
-
-interface UserInfoRow {
-  id: number;
-  nama: string;
-  alamat: string;
-  info1: string;
-  info2: string;
-}
 
 export async function GET() {
-  const db = getDb();
-  const info = db.prepare("SELECT id, nama, alamat, info1, info2 FROM user_info LIMIT 1").get() as
-    | UserInfoRow
-    | undefined;
+  const db = await getDb();
+  const info = await db
+    .collection("user_info")
+    .findOne({}, { projection: { _id: 0, id: 1, nama: 1, alamat: 1, info1: 1, info2: 1 } });
 
-  // Scan available DB years
-  const dbDir = path.join(process.cwd(), "src", "db");
+  // List available DB years by checking existing databases
   let dbYears: string[] = [];
   try {
-    dbYears = fs
-      .readdirSync(dbDir)
-      .filter((f) => /^\d{4}$/.test(f))
+    const client = db.client;
+    const adminDb = client.db("admin");
+    const databases = await adminDb.admin().listDatabases();
+    dbYears = databases.databases
+      .map((d) => d.name)
+      .filter((name) => /^jayaprima_\d{4}$/.test(name))
+      .map((name) => name.replace("jayaprima_", ""))
       .sort()
       .reverse();
   } catch {

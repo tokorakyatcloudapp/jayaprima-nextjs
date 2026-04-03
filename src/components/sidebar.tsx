@@ -106,10 +106,12 @@ export default function Sidebar({
                       >
                         <i className={`fa ${item.icon}`} /> {item.label}{" "}
                         <span
-                          className="fa fa-chevron-down"
+                          className={`fa fa-chevron-${isOpen ? "down" : "right"}`}
                           style={{
+                            display: "inline-block",
+                            width: 14,
+                            textAlign: "center",
                             transition: "transform 0.3s ease",
-                            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
                           }}
                         />
                       </a>

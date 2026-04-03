@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-
-interface LogoRow {
-  logo: Buffer | null;
-}
+import { Binary } from "mongodb";
 
 export async function GET(request: NextRequest) {
-  const db = getDb();
-  const row = db.prepare("SELECT logo FROM user_info WHERE id = 1").get() as LogoRow | undefined;
+  const db = await getDb();
+  const row = await db.collection("user_info").findOne({ id: 1 }, { projection: { logo: 1 } });
 
   if (!row?.logo) {
     return NextResponse.redirect(new URL("/logo.png", request.url));
   }
 
-  const buf = Buffer.from(row.logo);
+  const buf = Buffer.from(row.logo instanceof Binary ? row.logo.buffer : row.logo);
 
   let contentType = "image/jpeg";
   if (buf[0] === 0x89 && buf[1] === 0x50) {

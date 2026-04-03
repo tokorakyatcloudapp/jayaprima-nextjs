@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 
-interface TopPelangganRow {
-  id: number;
-  nama_pelanggan: string;
-  total_belanja: number;
-}
-
 export async function GET() {
-  const db = getDb();
-  const rows = db.prepare("SELECT * FROM v_top_pelanggan").all() as TopPelangganRow[];
+  const db = await getDb();
+  const rows = await db
+    .collection("v_top_pelanggan")
+    .find({}, { projection: { _id: 0 } })
+    .sort({ total_belanja: -1 })
+    .toArray();
 
   return NextResponse.json(rows);
 }

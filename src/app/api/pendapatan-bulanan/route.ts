@@ -1,19 +1,12 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 
-interface PendapatanBulananRow {
-  Ym: string;
-  kas_kotor: number;
-  phutang_kotor: number;
-  kas_modal: number;
-  phutang_modal: number;
-  kas_bersih: number;
-  phutang_bersih: number;
-}
-
 export async function GET() {
-  const db = getDb();
-  const rows = db.prepare("SELECT * FROM v_pendapatan_bulanan").all() as PendapatanBulananRow[];
+  const db = await getDb();
+  const rows = await db
+    .collection("v_pendapatan_bulanan")
+    .find({}, { projection: { _id: 0 } })
+    .toArray();
 
   return NextResponse.json(rows);
 }
