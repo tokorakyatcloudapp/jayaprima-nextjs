@@ -23,6 +23,14 @@ JWT via `jose`. Always call `verifySession()` in mutating API routes. Admin-only
 
 Use `req.formData()` in API routes — do not use `busboy` or `multer`. GridFS streams via `bucket.openUploadStream` / `bucket.openDownloadStream`.
 
+`GridFSBucketWriteStreamOptions` no longer has a `contentType` field — pass it inside `metadata` instead:
+
+```ts
+bucket.openUploadStream("logo", {
+  metadata: { contentType: file.type || "application/octet-stream" },
+});
+```
+
 ## UI
 
 Bootstrap 3 loaded from CDN in `src/app/layout.tsx`. Do not install Bootstrap via npm. Tailwind is present but rarely used — prefer Bootstrap 3 classes and `custom.min.css`.

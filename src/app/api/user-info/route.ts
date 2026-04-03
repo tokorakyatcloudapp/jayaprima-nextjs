@@ -59,7 +59,7 @@ export async function PUT(req: NextRequest) {
   if (logoFile && logoFile.size > 0) {
     const bucket = await getFsBucket();
     const uploadStream = bucket.openUploadStream("logo", {
-      contentType: logoFile.type || "application/octet-stream",
+      metadata: { contentType: logoFile.type || "application/octet-stream" },
     });
     const buf = Buffer.from(await logoFile.arrayBuffer());
     await new Promise<void>((resolve, reject) => {
