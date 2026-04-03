@@ -22,7 +22,12 @@ Jaya Prima - Business management system built with Next.js 16 (App Router). Indo
 src/
   app/
     api/            # API routes (login, logout, dashboard, pendapatan-*, top-*, storage-info, files/*, foto-profil, logo, user-info)
-    dashboard/      # Dashboard pages + panels (protected by JWT)
+    dashboard/
+      profil-usaha/ # Business profile & logo management (admin only, levelAkses === 0)
+      layout.tsx
+      page.tsx
+      dashboard-panels.tsx
+      dashboard-shell.tsx
     login/          # Login page
     layout.tsx      # Root layout (Bootstrap/FA CDN links)
     globals.css     # Global styles + shimmer animations
@@ -35,7 +40,7 @@ scripts/
   migrate-sqlite-to-mongo.ts  # SQLite to MongoDB migration script
 public/
   asset/css/custom.min.css    # Legacy custom styles
-  logo.png                    # Company logo / favicon
+  logo.png                    # Company logo / favicon (fallback when no GridFS logo)
 ```
 
 ## Database Collections
@@ -60,3 +65,5 @@ public/
 - Multi-year DB support: Year selectable in TopNav, switches `getDb(year)`.
 - Role-based access: `levelAkses === 0` for admin-only features.
 - Code quality: Husky pre-commit hooks with ESLint + Prettier (100 char width, no semicolons).
+- `/api/logo` must use `Cache-Control: no-store` — never add long-lived caching or the updated logo won't appear after upload.
+- Logo/profile uploads use react-dropzone with immediate upload on drop; successful save reloads the page via `window.location.reload()`.

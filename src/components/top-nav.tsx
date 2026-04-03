@@ -16,6 +16,7 @@ export default function TopNav({
 }>) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [dbOpen, setDbOpen] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const profileRef = useRef<HTMLLIElement>(null);
   const dbRef = useRef<HTMLLIElement>(null);
   const router = useRouter();
@@ -49,8 +50,16 @@ export default function TopNav({
             setProfileOpen(!profileOpen);
           }}
         >
+          { }
+          {!profileLoaded && <span className="profile-img-loader shimmer" aria-hidden="true" />}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`/api/foto-profil?id=${userId}`} alt="" />
+          <img
+            src={`/api/foto-profil?id=${userId}`}
+            alt=""
+            style={{ display: profileLoaded ? "inline-block" : "none" }}
+            onLoad={() => setProfileLoaded(true)}
+            onError={() => setProfileLoaded(true)}
+          />
           {nama}
           <span className=" fa fa-angle-down" />
         </a>

@@ -7,7 +7,9 @@ export const metadata: Metadata = {
   title: "Jaya Prima",
   description: "Sistem Manajemen Jaya Prima",
   icons: {
-    icon: "/logo.png",
+    icon: [{ url: "/logo.png?v=2", type: "image/png" }],
+    apple: "/logo.png?v=2",
+    shortcut: "/logo.png?v=2",
   },
 };
 

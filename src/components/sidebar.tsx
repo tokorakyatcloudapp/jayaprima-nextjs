@@ -47,6 +47,7 @@ export default function Sidebar({
 }>) {
   const pathname = usePathname();
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   return (
     <div className="col-md-3 left_col">
@@ -74,11 +75,16 @@ export default function Sidebar({
 
         <div className="profile clearfix">
           <div className="profile_pic">
+            { }
+            {!profileLoaded && <div className="profile_img shimmer" aria-hidden="true" />}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`/api/foto-profil?id=${userId}`}
               alt="foto-profil"
               className="img-circle profile_img"
+              style={{ display: profileLoaded ? "block" : "none" }}
+              onLoad={() => setProfileLoaded(true)}
+              onError={() => setProfileLoaded(true)}
             />
           </div>
           <div className="profile_info">

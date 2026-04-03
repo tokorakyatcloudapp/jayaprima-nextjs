@@ -6,7 +6,7 @@ const SECRET_KEY = new TextEncoder().encode(
 );
 
 const SESSION_COOKIE = "session";
-const EXPIRATION_HOURS = 20;
+const EXPIRATION_HOURS = 72;
 
 export interface SessionPayload {
   userId: number;

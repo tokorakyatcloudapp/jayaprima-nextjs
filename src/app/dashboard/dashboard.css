@@ -37,6 +37,7 @@
 
 .nav-md .container.body .right_col {
   padding: 20px 30px;
+  min-height: 100vh;
 }
 
 .tile_count .tile_stats_count:before {
@@ -58,6 +59,12 @@ th {
   border-radius: 0 !important;
   overflow: visible !important;
   padding: 0 !important;
+}
+
+.profile_img.shimmer {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
 }
 
 .nav-sm .site_title i img {

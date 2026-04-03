@@ -19,15 +19,22 @@ export async function GET(request: NextRequest) {
 
   const buf = Buffer.from(row.foto instanceof Binary ? row.foto.buffer : row.foto);
 
-  // Detect content type from magic bytes
   let contentType = "image/jpeg";
   if (buf[0] === 0x89 && buf[1] === 0x50) {
     contentType = "image/png";
   }
 
-  return new NextResponse(buf, {
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new Uint8Array(buf));
+      controller.close();
+    },
+  });
+
+  return new Response(stream, {
     headers: {
       "Content-Type": contentType,
+      "Content-Length": String(buf.length),
       "Cache-Control": "public, max-age=3600",
     },
   });
